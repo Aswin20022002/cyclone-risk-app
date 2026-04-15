@@ -1,12 +1,12 @@
 import pandas as pd
+import numpy as np
 from math import radians, sin, cos, sqrt, atan2
-# Upload these files in Colab before running:
-# cyclone_india.csv (IBTrACS filtered NI)
-# pincode_data.csv
 
+# ---------------- LOAD DATA ----------------
 df = pd.read_csv("cyclone_india.csv")
 df_pin = pd.read_csv("pincode_data.csv")
-# --- Cyclone data ---
+
+# ---------------- CLEAN CYCLONE DATA ----------------
 df = df[['LAT', 'LON', 'USA_WIND']].dropna()
 
 df['LAT'] = pd.to_numeric(df['LAT'], errors='coerce')
@@ -16,8 +16,7 @@ df['USA_WIND'] = pd.to_numeric(df['USA_WIND'], errors='coerce')
 df = df.dropna()
 df.columns = ['lat', 'lon', 'wind']
 
-
-# --- PIN data ---
+# ---------------- CLEAN PIN DATA ----------------
 df_pin = df_pin[['pincode', 'latitude', 'longitude']]
 
 df_pin['pincode'] = pd.to_numeric(df_pin['pincode'], errors='coerce')
@@ -25,20 +24,24 @@ df_pin['latitude'] = pd.to_numeric(df_pin['latitude'], errors='coerce')
 df_pin['longitude'] = pd.to_numeric(df_pin['longitude'], errors='coerce')
 
 df_pin = df_pin.dropna()
+
+# ---------------- DISTANCE FUNCTION ----------------
 def distance(lat1, lon1, lat2, lon2):
-    R = 6371  # Earth radius in km
+    R = 6371
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)
     a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
     return 2 * R * atan2(sqrt(a), sqrt(1 - a))
-  def get_lat_lon(pin):
+
+# ---------------- GET LAT LON ----------------
+def get_lat_lon(pin):
     row = df_pin[df_pin['pincode'] == int(pin)]
     if not row.empty:
         return float(row.iloc[0]['latitude']), float(row.iloc[0]['longitude'])
     return None, None
-    def cyclone_indicators(pin_lat, pin_lon):
 
-    import numpy as np
+# ---------------- INDICATORS ----------------
+def cyclone_indicators(pin_lat, pin_lon):
 
     nearby = []
     decay_sum = 0
@@ -49,35 +52,19 @@ def distance(lat1, lon1, lat2, lon2):
         if d <= 200:
             nearby.append(row)
 
-            # Distance-decayed exposure
-            if d > 0:
+            if d > 1:  # avoid explosion
                 decay_sum += row['wind'] / (d**2)
 
     nearby_df = pd.DataFrame(nearby)
 
-    # 1. Track density
     track_density = len(nearby_df)
-
-    # 2. Max wind exposure
     max_wind = nearby_df['wind'].max() if len(nearby_df) > 0 else 0
-
-    # 3. Distance-decayed exposure (FIXED)
     decay = np.log1p(decay_sum)
 
     return track_density, max_wind, decay
-    # Track density max (approx)
-max_td = 200   # safe upper bound
 
-# Wind range (realistic)
-min_wind = df['wind'].min()
-max_wind = df['wind'].max()
-
-# Decay range (approx after log)
-min_decay = 0
-max_decay = 0.02   # adjust based on observed values
-import numpy as np
-
-sample = df_pin.sample(200)  # only 200 PINs → fast
+# ---------------- NORMALIZATION RANGE (REAL SAMPLE) ----------------
+sample = df_pin.sample(200)
 
 td_list = []
 wind_list = []
@@ -93,15 +80,18 @@ for _, row in sample.iterrows():
     wind_list.append(wind)
     decay_list.append(decay)
 
-# Realistic ranges
 min_td, max_td = min(td_list), max(td_list)
 min_wind, max_wind = min(wind_list), max(wind_list)
 min_decay, max_decay = min(decay_list), max(decay_list)
+
+# ---------------- NORMALIZE ----------------
 def normalize(value, min_val, max_val):
     if max_val == min_val:
         return 0
     return (value - min_val) / (max_val - min_val) * 100
-  def cyclone_score(pin):
+
+# ---------------- FINAL SCORE ----------------
+def cyclone_score(pin):
 
     lat, lon = get_lat_lon(pin)
 
@@ -110,23 +100,22 @@ def normalize(value, min_val, max_val):
 
     td, wind, decay = cyclone_indicators(lat, lon)
 
-    # Normalize each component
-    td_score = normalize(td, 0, max_td)
+    td_score = normalize(td, min_td, max_td)
     wind_score = normalize(wind, min_wind, max_wind)
     decay_score = normalize(decay, min_decay, max_decay)
 
-    # Weighted score
     score = (
         0.40 * td_score +
         0.35 * wind_score +
         0.25 * decay_score
     )
 
-    # FINAL SAFETY (IMPORTANT)
     score = max(0, min(100, score))
 
     return round(score, 2), td, wind
-    pin = input("Enter PIN code: ")
+
+# ---------------- TEST ----------------
+pin = input("Enter PIN code: ")
 
 result = cyclone_score(pin)
 
@@ -143,6 +132,5 @@ if result:
         print("Moderate cyclone exposure.")
     else:
         print("Low cyclone risk.")
-
 else:
     print("Invalid PIN code")
