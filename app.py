@@ -155,6 +155,3 @@ if pin:
 
     else:
         st.write("Invalid PIN code")
-
-Commit message:
-Updated working Streamlit app
