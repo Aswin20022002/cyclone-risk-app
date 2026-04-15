@@ -7,6 +7,26 @@ import numpy as np
 df = pd.read_csv("cyclone_india.csv")
 df_pin = pd.read_csv("pincode_data.csv")
 
+# Clean cyclone data
+df = df[['LAT', 'LON', 'USA_WIND']].dropna()
+
+df['LAT'] = pd.to_numeric(df['LAT'], errors='coerce')
+df['LON'] = pd.to_numeric(df['LON'], errors='coerce')
+df['USA_WIND'] = pd.to_numeric(df['USA_WIND'], errors='coerce')
+
+df = df.dropna()
+df.columns = ['lat', 'lon', 'wind']
+
+
+# Clean PIN data
+df_pin = df_pin[['pincode', 'latitude', 'longitude']]
+
+df_pin['pincode'] = pd.to_numeric(df_pin['pincode'], errors='coerce')
+df_pin['latitude'] = pd.to_numeric(df_pin['latitude'], errors='coerce')
+df_pin['longitude'] = pd.to_numeric(df_pin['longitude'], errors='coerce')
+
+df_pin = df_pin.dropna()
+
 # Clean data
 df = df[['LAT', 'LON', 'USA_WIND']].dropna()
 df.columns = ['lat', 'lon', 'wind']
