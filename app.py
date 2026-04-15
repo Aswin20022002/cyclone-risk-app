@@ -3,22 +3,39 @@ import pandas as pd
 from math import radians, sin, cos, sqrt, atan2
 import numpy as np
 
-# Load data
+# ---------------------------
+# LOAD DATA
+# ---------------------------
 df = pd.read_csv("cyclone_india.csv")
 df_pin = pd.read_csv("pincode_data.csv")
 
-# Clean cyclone data
-df = df[['LAT', 'LON', 'USA_WIND']].dropna()
+# ---------------------------
+# CLEAN CYCLONE DATA
+# ---------------------------
+df.columns = df.columns.str.lower()
 
-df['LAT'] = pd.to_numeric(df['LAT'], errors='coerce')
-df['LON'] = pd.to_numeric(df['LON'], errors='coerce')
-df['USA_WIND'] = pd.to_numeric(df['USA_WIND'], errors='coerce')
+# Try common column names
+if 'usa_wind' in df.columns:
+    wind_col = 'usa_wind'
+elif 'wind' in df.columns:
+    wind_col = 'wind'
+else:
+    wind_col = df.columns[-1]  # fallback
+
+df = df[['lat', 'lon', wind_col]].dropna()
+
+df['lat'] = pd.to_numeric(df['lat'], errors='coerce')
+df['lon'] = pd.to_numeric(df['lon'], errors='coerce')
+df[wind_col] = pd.to_numeric(df[wind_col], errors='coerce')
 
 df = df.dropna()
 df.columns = ['lat', 'lon', 'wind']
 
+# ---------------------------
+# CLEAN PIN DATA
+# ---------------------------
+df_pin.columns = df_pin.columns.str.lower()
 
-# Clean PIN data
 df_pin = df_pin[['pincode', 'latitude', 'longitude']]
 
 df_pin['pincode'] = pd.to_numeric(df_pin['pincode'], errors='coerce')
@@ -27,11 +44,9 @@ df_pin['longitude'] = pd.to_numeric(df_pin['longitude'], errors='coerce')
 
 df_pin = df_pin.dropna()
 
-# Clean data
-df = df[['LAT', 'LON', 'USA_WIND']].dropna()
-df.columns = ['lat', 'lon', 'wind']
-
-# Distance function
+# ---------------------------
+# DISTANCE FUNCTION
+# ---------------------------
 def distance(lat1, lon1, lat2, lon2):
     R = 6371
     dlat = radians(lat2 - lat1)
@@ -39,14 +54,21 @@ def distance(lat1, lon1, lat2, lon2):
     a = sin(dlat/2)**2 + cos(radians(lat1))*cos(radians(lat2))*sin(dlon/2)**2
     return 2 * R * atan2(sqrt(a), sqrt(1 - a))
 
-# Get lat lon
+# ---------------------------
+# GET PIN LOCATION
+# ---------------------------
 def get_lat_lon(pin):
-    row = df_pin[df_pin['pincode'] == int(pin)]
-    if not row.empty:
-        return float(row.iloc[0]['latitude']), float(row.iloc[0]['longitude'])
+    try:
+        row = df_pin[df_pin['pincode'] == int(pin)]
+        if not row.empty:
+            return float(row.iloc[0]['latitude']), float(row.iloc[0]['longitude'])
+    except:
+        pass
     return None, None
 
-# Indicators
+# ---------------------------
+# CYCLONE INDICATORS
+# ---------------------------
 def cyclone_indicators(pin_lat, pin_lon):
     decay_sum = 0
     nearby = []
@@ -67,19 +89,24 @@ def cyclone_indicators(pin_lat, pin_lon):
 
     return track_density, max_wind, decay
 
-# Normalization (fixed bounds for speed)
+# ---------------------------
+# NORMALIZATION
+# ---------------------------
 def normalize(value, min_val, max_val):
     if max_val == min_val:
         return 0
     return (value - min_val) / (max_val - min_val) * 100
 
+# Fixed bounds (fast + stable)
 max_td = 200
 min_wind = 0
 max_wind = 150
 min_decay = 0
 max_decay = 0.03
 
-# Score
+# ---------------------------
+# FINAL SCORE
+# ---------------------------
 def cyclone_score(pin):
     lat, lon = get_lat_lon(pin)
 
@@ -102,7 +129,9 @@ def cyclone_score(pin):
 
     return round(score, 2), td, wind
 
+# ---------------------------
 # UI
+# ---------------------------
 st.title("🌪️ Cyclone Risk Assessment Tool")
 
 pin = st.text_input("Enter PIN Code")
@@ -123,5 +152,6 @@ if pin:
             st.warning("Moderate cyclone exposure")
         else:
             st.success("Low cyclone risk")
+
     else:
-        st.write("Invalid PIN")
+        st.write("Invalid PIN code")
