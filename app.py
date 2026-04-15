@@ -63,26 +63,12 @@ def cyclone_indicators(pin_lat, pin_lon):
 
     return track_density, max_wind, decay
 
-# ---------------- NORMALIZATION RANGE (REAL SAMPLE) ----------------
-sample = df_pin.sample(200)
 
-td_list = []
-wind_list = []
-decay_list = []
+df_scores = pd.read_csv("precomputed_scores.csv")
 
-for _, row in sample.iterrows():
-    lat = row['latitude']
-    lon = row['longitude']
-
-    td, wind, decay = cyclone_indicators(lat, lon)
-
-    td_list.append(td)
-    wind_list.append(wind)
-    decay_list.append(decay)
-
-min_td, max_td = min(td_list), max(td_list)
-min_wind, max_wind = min(wind_list), max(wind_list)
-min_decay, max_decay = min(decay_list), max(decay_list)
+min_td, max_td = df_scores['td'].min(), df_scores['td'].max()
+min_wind, max_wind = df_scores['wind'].min(), df_scores['wind'].max()
+min_decay, max_decay = df_scores['decay'].min(), df_scores['decay'].max()
 
 # ---------------- NORMALIZE ----------------
 def normalize(value, min_val, max_val):
