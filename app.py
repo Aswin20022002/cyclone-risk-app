@@ -5,7 +5,6 @@ import numpy as np
 # ── PAGE CONFIG ────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="India Cyclone Risk",
-    page_icon="🌀",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -279,8 +278,7 @@ box-shadow: 0 0 0 3px rgba(0,133,202,0.15)
     color: #991b1b;
     font-size: 0.88rem;
 }
-</style>
-""", unsafe_allow_html=True)
+
 
 .stButton>button {
     background-color: #01244a;
@@ -293,6 +291,8 @@ box-shadow: 0 0 0 3px rgba(0,133,202,0.15)
     background-color: #0085ca;
     color: white;
 }
+</style>
+""", unsafe_allow_html=True)
 
 # ── LOAD DATA ──────────────────────────────────────────────────────────────────
 @st.cache_data
