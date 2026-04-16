@@ -12,31 +12,18 @@ df_scores = pd.read_csv("precomputed_scores.csv")
 df = pd.read_csv("cyclone_india.csv", skiprows=[1])
 df.columns = df.columns.str.lower()
 
-# ✅ KEEP ONLY INDIA BASIN
-df = df[df['basin'] == 'NI']
+df = df[['lat', 'lon', 'usa_wind']]
 
-# ✅ KEEP REQUIRED COLUMNS
-df = df[['lat', 'lon', 'usa_wind', 'season']]
-
-# Convert
 df['lat'] = pd.to_numeric(df['lat'], errors='coerce')
 df['lon'] = pd.to_numeric(df['lon'], errors='coerce')
 df['usa_wind'] = pd.to_numeric(df['usa_wind'], errors='coerce')
-df['season'] = pd.to_numeric(df['season'], errors='coerce')
 
-# Remove invalid wind
 df['usa_wind'] = df['usa_wind'].replace(-9999, np.nan)
 
-# Clean
 df = df.dropna()
-
-# ✅ REMOVE WEAK / INVALID
 df = df[df['usa_wind'] > 0]
 
-# ✅ MATCH PRECOMPUTE TIME RANGE
-df = df[df['season'] >= 1980]
-
-df.columns = ['lat', 'lon', 'wind', 'season']
+df.columns = ['lat', 'lon', 'wind']
 
 # ---------------- CLEAN PIN DATA ----------------
 df_pin.columns = df_pin.columns.str.lower()
