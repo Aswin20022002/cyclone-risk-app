@@ -11,7 +11,7 @@ df_scores = pd.read_csv("precomputed_scores.csv")
 # ---------------- CLEAN CYCLONE DATA ----------------
 df.columns = df.columns.str.lower()
 
-df = df[['sid', 'season', 'lat', 'lon', 'usa_wind']]
+df = df[['lat', 'lon', 'usa_wind']]
 
 df['lat'] = pd.to_numeric(df['lat'], errors='coerce')
 df['lon'] = pd.to_numeric(df['lon'], errors='coerce')
@@ -20,14 +20,9 @@ df['usa_wind'] = pd.to_numeric(df['usa_wind'], errors='coerce')
 df['usa_wind'] = df['usa_wind'].replace(-9999, np.nan)
 
 df = df.dropna()
-
-# remove weak storms
 df = df[df['usa_wind'] > 0]
 
-# reliable data only
-df = df[df['season'] >= 1980]
-
-df.columns = ['sid', 'season', 'lat', 'lon', 'wind']
+df.columns = ['lat', 'lon', 'wind']
 
 # ---------------- CLEAN PIN DATA ----------------
 df_pin.columns = df_pin.columns.str.lower()
@@ -48,7 +43,7 @@ def distance(lat1, lon1, lat2, lon2):
     a = sin(dlat/2)**2 + cos(radians(lat1))*cos(radians(lat2))*sin(dlon/2)**2
     return 2 * R * atan2(sqrt(a), sqrt(1 - a))
 
-# ---------------- INDICATORS ----------------
+# ---------------- CYCLONE INDICATORS ----------------
 def cyclone_indicators(pin_lat, pin_lon):
 
     nearby = []
@@ -57,7 +52,8 @@ def cyclone_indicators(pin_lat, pin_lon):
     for _, row in df.iterrows():
         d = distance(pin_lat, pin_lon, row['lat'], row['lon'])
 
-        if d <= 500:   # IMPORTANT: same as precompute
+        # ✅ MATCH PRECOMPUTE (300 km)
+        if d <= 300:
             nearby.append(row)
 
             if d > 1:
@@ -68,8 +64,8 @@ def cyclone_indicators(pin_lat, pin_lon):
     if nearby_df.empty:
         return 0, 0, 0
 
-    # 🔥 CORRECT: use unique storms (same as precompute)
-    track_density = nearby_df['sid'].nunique()
+    # ✅ MATCH PRECOMPUTE (TRACK POINT COUNT)
+    track_density = len(nearby_df)
 
     max_wind = nearby_df['wind'].max()
 
@@ -77,15 +73,14 @@ def cyclone_indicators(pin_lat, pin_lon):
 
     return track_density, max_wind, decay
 
-# ---------------- NORMALIZATION ----------------
+# ---------------- NORMALIZATION (MATCH CSV) ----------------
 df_scores.columns = df_scores.columns.str.strip()
 
 min_td, max_td = df_scores['track_count'].min(), df_scores['track_count'].max()
 min_wind, max_wind = df_scores['max_wind'].min(), df_scores['max_wind'].max()
 min_decay, max_decay = df_scores['decay_score'].min(), df_scores['decay_score'].max()
 
-def percentile_score(series, value):
-    return (series <= value).mean() * 100
+def normalize(value, min_val, max_val):
     if max_val == min_val:
         return 0
     val = (value - min_val) / (max_val - min_val) * 100
@@ -105,14 +100,11 @@ def cyclone_score(pin):
 
     td, wind, decay = cyclone_indicators(lat, lon)
 
-    # ✅ percentile normalization
-    td_score = percentile_score(df_scores['track_count'], td)
-    wind_score = percentile_score(df_scores['max_wind'], wind)
-    decay_score = percentile_score(df_scores['decay_score'], decay)
+    td_score = normalize(td, min_td, max_td)
+    wind_score = normalize(wind, min_wind, max_wind)
+    decay_score = normalize(decay, min_decay, max_decay)
 
-    # ✅ THIS LINE MUST ALIGN WITH ABOVE (same indentation)
     score = 0.40 * td_score + 0.35 * wind_score + 0.25 * decay_score
-
     score = max(0, min(100, score))
 
     return round(score, 2), td, wind
@@ -129,12 +121,14 @@ if pin:
         score, td, wind = result
 
         st.subheader(f"Cyclone Score: {score}")
-        st.write(f"Track Density (storms): {td}")
+        st.write(f"Track Density (points): {td}")
         st.write(f"Max Wind: {wind}")
 
-        if score > 60:
-            st.error("High cyclone risk")
-        elif score > 30:
+        if score > 80:
+            st.error("Very High cyclone risk")
+        elif score > 60:
+            st.warning("High cyclone risk")
+        elif score > 40:
             st.warning("Moderate cyclone exposure")
         else:
             st.success("Low cyclone risk")
