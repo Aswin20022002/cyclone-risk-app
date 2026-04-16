@@ -54,7 +54,7 @@ def cyclone_indicators(pin_lat, pin_lon):
         d = distance(pin_lat, pin_lon, row['lat'], row['lon'])
 
         # ✅ MATCH PRECOMPUTE (300 km)
-        if d <= 300:
+        if d <= 500:
             nearby.append(row)
 
             if d > 1:
