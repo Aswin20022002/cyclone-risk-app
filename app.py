@@ -25,6 +25,9 @@ df = df[df['usa_wind'] > 0]
 
 df.columns = ['lat', 'lon', 'wind']
 
+df = df.sort_values(by=['lat','lon'])
+df = df.drop_duplicates(subset=['lat','lon'])
+
 # ---------------- CLEAN PIN DATA ----------------
 df_pin.columns = df_pin.columns.str.lower()
 
