@@ -84,7 +84,8 @@ min_td, max_td = df_scores['track_count'].min(), df_scores['track_count'].max()
 min_wind, max_wind = df_scores['max_wind'].min(), df_scores['max_wind'].max()
 min_decay, max_decay = df_scores['decay_score'].min(), df_scores['decay_score'].max()
 
-def normalize(value, min_val, max_val):
+def percentile_score(series, value):
+    return (series <= value).mean() * 100
     if max_val == min_val:
         return 0
     val = (value - min_val) / (max_val - min_val) * 100
@@ -104,9 +105,9 @@ def cyclone_score(pin):
 
     td, wind, decay = cyclone_indicators(lat, lon)
 
-    td_score = normalize(td, min_td, max_td)
-    wind_score = normalize(wind, min_wind, max_wind)
-    decay_score = normalize(decay, min_decay, max_decay)
+    td_score = percentile_score(df_scores['track_count'], td)
+wind_score = percentile_score(df_scores['max_wind'], wind)
+decay_score = percentile_score(df_scores['decay_score'], decay)
 
     score = 0.40 * td_score + 0.35 * wind_score + 0.25 * decay_score
     score = max(0, min(100, score))
