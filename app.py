@@ -12,6 +12,11 @@ st.set_page_config(
 # ── CUSTOM CSS ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
+
+body {
+    background-color: #ffffff;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 html, body, [class*="css"] {
@@ -24,21 +29,24 @@ html, body, [class*="css"] {
 
 /* ── Hero ── */
 .hero {
-    background: linear-gradient(135deg, #01244a 0%, #5c8bb4 60%, #0085ca 100%);
-    border-radius: 16px;
-    padding: 2.5rem 2rem 2rem;
-    margin-bottom: 2rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+    background: #01244a;
+    border-radius: 10px;
+    padding: 2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
 }
-.hero::before {
-    content: '';
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
-    border-radius: 50%;
+.hero h1 {
+    color: white;
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+.hero p {
+    color: #dee7f0;
+    font-size: 0.9rem;
+}
+.hero .badge {
+    display: none;  /* remove this completely */
 }
 .hero-icon { font-size: 3rem; margin-bottom: 0.5rem; }
 .hero h1 {
@@ -68,17 +76,19 @@ html, body, [class*="css"] {
 
 /* ── Search box ── */
 .stTextInput > div > div > input {
-    border-radius: 10px !important;
-    border: 1.5px solid #e2e8f0 !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 1.1rem !important;
-    font-family: 'Inter', sans-serif !important;
-    transition: border-color 0.2s;
+    border-radius: 6px !important;
+    border: 1px solid #dee7f0 !important;
+    font-size: 1rem !important;
 }
-.stTextInput > div > div > input:focus {
-    border-color: #0085ca
-box-shadow: 0 0 0 3px rgba(0,133,202,0.15)
-    box-shadow: 0 0 0 3px rgba(56,189,248,0.15) !important;
+
+.stButton>button {
+    background-color: #01244a;
+    color: white;
+    border-radius: 6px;
+    font-weight: 500;
+}
+.stButton>button:hover {
+    background-color: #5c8bb4;
 }
 
 /* ── Score card ── */
@@ -224,7 +234,9 @@ box-shadow: 0 0 0 3px rgba(0,133,202,0.15)
 
 /* ── Methodology box ── */
 .method-box {
-    background: #f8fafc;
+    background: white;
+    border: 1px solid #dee7f0;
+}
     border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 1.25rem 1.5rem;
@@ -306,7 +318,6 @@ df_scores = load_data()
 # ── HERO ───────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="hero">
-    <div class="hero-icon">🌀</div>
     <h1>India Cyclone Risk Explorer</h1>
     <p>PIN code–level cyclone hazard scores derived from 180+ years of NOAA storm data</p>
     <div class="badge">NOAA IBTrACS · 1842–2023 · 19,550 PIN codes</div>
