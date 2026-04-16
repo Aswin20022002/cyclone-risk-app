@@ -25,7 +25,7 @@ html, body, [class*="css"] {
 
 /* ── Hero ── */
 .hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1a4971 100%);
+    background: linear-gradient(135deg, #01244a 0%, #5c8bb4 60%, #0085ca 100%);
     border-radius: 16px;
     padding: 2.5rem 2rem 2rem;
     margin-bottom: 2rem;
@@ -77,7 +77,8 @@ html, body, [class*="css"] {
     transition: border-color 0.2s;
 }
 .stTextInput > div > div > input:focus {
-    border-color: #38bdf8 !important;
+    border-color: #0085ca
+box-shadow: 0 0 0 3px rgba(0,133,202,0.15)
     box-shadow: 0 0 0 3px rgba(56,189,248,0.15) !important;
 }
 
@@ -212,12 +213,12 @@ html, body, [class*="css"] {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: #dee7f0;
+    border: 1px solid #5c8bb4;
     border-radius: 20px;
     padding: 0.35rem 0.9rem;
     font-size: 0.82rem;
-    color: #475569;
+    color: #01244a;
     font-weight: 500;
     margin-bottom: 1rem;
 }
@@ -249,7 +250,7 @@ html, body, [class*="css"] {
 .method-row:last-child { border-bottom: none; }
 .method-name { color: #334155; font-weight: 500; }
 .method-weight {
-    background: #0f172a;
+    background: #01244a;
     color: white;
     border-radius: 12px;
     padding: 0.15rem 0.6rem;
@@ -267,7 +268,7 @@ html, body, [class*="css"] {
     border-top: 1px solid #e2e8f0;
     line-height: 1.8;
 }
-.footer a { color: #38bdf8; text-decoration: none; }
+.footer a { color: #0085ca; text-decoration: none; }
 
 /* ── Error ── */
 .error-box {
@@ -280,6 +281,18 @@ html, body, [class*="css"] {
 }
 </style>
 """, unsafe_allow_html=True)
+
+.stButton>button {
+    background-color: #01244a;
+    color: white;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+}
+.stButton>button:hover {
+    background-color: #0085ca;
+    color: white;
+}
 
 # ── LOAD DATA ──────────────────────────────────────────────────────────────────
 @st.cache_data
