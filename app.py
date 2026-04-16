@@ -105,11 +105,14 @@ def cyclone_score(pin):
 
     td, wind, decay = cyclone_indicators(lat, lon)
 
+    # ✅ percentile normalization
     td_score = percentile_score(df_scores['track_count'], td)
-wind_score = percentile_score(df_scores['max_wind'], wind)
-decay_score = percentile_score(df_scores['decay_score'], decay)
+    wind_score = percentile_score(df_scores['max_wind'], wind)
+    decay_score = percentile_score(df_scores['decay_score'], decay)
 
+    # ✅ THIS LINE MUST ALIGN WITH ABOVE (same indentation)
     score = 0.40 * td_score + 0.35 * wind_score + 0.25 * decay_score
+
     score = max(0, min(100, score))
 
     return round(score, 2), td, wind
